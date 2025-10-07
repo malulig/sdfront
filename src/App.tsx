@@ -11,7 +11,7 @@ function App() {
     <BrowserRouter>
         <Routes>
           <Route path="/" element={<LayoutComponent />}>
-            <Route index element={< Profile/>} />
+            <Route index element={< AuthForm/>} />
             <Route path='/tasks' element={<Tasks />} />
             <Route path='/auth' element={<AuthForm />} />
             <Route path='/me' element={<Profile />} />
