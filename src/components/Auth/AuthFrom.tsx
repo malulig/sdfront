@@ -2,11 +2,12 @@ import { Button, Typography, Spin } from "antd";
 import { useUserStore } from "../../store/useUserStore";
 import { initUserFromSession, startAzureLogin } from "../../api/userApi";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function AuthForm() {
   const { access_token } = useUserStore();
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -20,6 +21,10 @@ export function AuthForm() {
 
     fetchUser();
   }, []);
+  
+  useEffect(() => {
+    navigate(access_token ? "/me" : "/auth");
+  }, [access_token]);
 
   if (loading) {
     return (

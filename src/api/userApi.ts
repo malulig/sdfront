@@ -5,7 +5,11 @@ import type { AxiosError } from "axios";
 
 /** Достаём cookie по имени нативненько */
 function getCookie(name: string): string | null {
-  const m = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}=([^;]*)`));
+  const m = document.cookie.match(
+    new RegExp(
+      `(?:^|; )${name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}=([^;]*)`
+    )
+  );
   return m ? decodeURIComponent(m[1]) : null;
 }
 
@@ -22,14 +26,13 @@ function setAuthHeader(token: string | null): void {
 export const refreshAccessToken = async (): Promise<string | null> => {
   try {
     const csrf = getCookie("csrf_token");
-    const { data } = await api.post<{ access_token: string; expires_in?: number }>(
-      "/auth/refresh",
-      null,
-      {
-        withCredentials: true,
-        headers: csrf ? { "x-csrf-token": csrf } : {},
-      }
-    );
+    const { data } = await api.post<{
+      access_token: string;
+      expires_in?: number;
+    }>("/auth/refresh", null, {
+      withCredentials: true,
+      headers: csrf ? { "x-csrf-token": csrf } : {},
+    });
 
     // Обновляем store и axios
     useUserStore.getState().setUser({ access_token: data.access_token });
@@ -38,7 +41,10 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     return data.access_token;
   } catch (e) {
     const err = e as AxiosError<any>;
-    console.error("Ошибка обновления токена:", err.response?.data ?? err.message);
+    console.error(
+      "Ошибка обновления токена:",
+      err.response?.data ?? err.message
+    );
     return null;
   }
 };
@@ -49,7 +55,9 @@ export const refreshAccessToken = async (): Promise<string | null> => {
  */
 export const initUserFromSession = async (): Promise<User | null> => {
   const doProfile = async (): Promise<User> => {
-    const { data } = await api.get<User>("/auth/profile", { withCredentials: true });
+    const { data } = await api.get<User>("/auth/profile", {
+      withCredentials: true,
+    });
     return data;
   };
 
@@ -71,11 +79,17 @@ export const initUserFromSession = async (): Promise<User | null> => {
         return user;
       } catch (e2) {
         const err2 = e2 as AxiosError<any>;
-        console.error("Ошибка при повторной попытке профиля:", err2.response?.data ?? err2.message);
+        console.error(
+          "Ошибка при повторной попытке профиля:",
+          err2.response?.data ?? err2.message
+        );
         return null;
       }
     }
-    console.error("Ошибка при инициализации пользователя:", err.response?.data ?? err.message);
+    console.error(
+      "Ошибка при инициализации пользователя:",
+      err.response?.data ?? err.message
+    );
     return null;
   }
 };
@@ -86,26 +100,27 @@ export const startAzureLogin = (): void => {
 };
 
 /** Выход из системы (logout) */
+// api/userApi.ts
 export const logout = async (): Promise<boolean> => {
   try {
     const csrf = getCookie("csrf_token");
+    await api.post("/auth/logout", null, {
+      withCredentials: true,
+      headers: csrf ? { "x-csrf-token": csrf } : {},
+    });
+    useUserStore
+      .getState()
+      .setUser({
+        id: "",
+        role: "",
+        email: "",
+        displayName: "",
+        access_token: "",
+      });
 
-    await api.post(
-      "/auth/logout",
-      null,
-      {
-        withCredentials: true,
-        headers: csrf ? { "x-csrf-token": csrf } : {},
-      }
-    );
-
-    // Очищаем store и axios
-    useUserStore.getState().setUser({});
     setAuthHeader(null);
-
     return true;
-  } catch (e) {
-    console.error("Ошибка при выходе из системы:", e);
+  } catch {
     return false;
   }
 };
